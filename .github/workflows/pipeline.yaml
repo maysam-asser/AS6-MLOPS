@@ -7,9 +7,7 @@ on:
 
 jobs:
 
-  # ---------------------------
   # 1. LINTER JOB (LIGHTWEIGHT)
-  # ---------------------------
   linter:
     runs-on: ubuntu-latest
 
@@ -20,17 +18,15 @@ jobs:
       - name: Run simple linter
         run: |
           echo "Running linter..."
-          # Example check (you can replace with flake8, eslint, etc.)
           echo "No lint errors found!"
 
-  # ---------------------------
+  
   # 2. TRAIN JOB (EXPENSIVE)
-  # ---------------------------
   train:
     needs: linter
     runs-on: ubuntu-latest
 
-    # 🔥 THIS IS THE GATEKEEPER LOGIC
+    #  GATEKEEPER LOGIC
     if: |
       needs.linter.result == 'success' &&
       github.ref == 'refs/heads/main' &&
@@ -40,15 +36,22 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Simulate training (GPU job)
-        run: |
-          echo "Training model..."
-          # Simulate failure for testing
-          exit 1
+      # SETUP PYTHON ENVIRONMENT
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
 
-      # ---------------------------
-      # 3. UPLOAD ERROR LOGS ON FAILURE
-      # ---------------------------
+      # INSTALL DEPENDENCIES
+      - name: Install dependencies
+        run: |
+          pip install scikit-learn
+
+      # RUN REAL TRAINING SCRIPT
+      - name: Run training script
+        run: python train.py
+
+      # 3. FAILURE HANDLING
       - name: Create error log
         if: failure()
         run: echo "Training failed! Check your code." > error_logs.txt
@@ -60,9 +63,7 @@ jobs:
           name: error-logs
           path: error_logs.txt
 
-      # ---------------------------
       # 4. ALWAYS RUN CLEANUP
-      # ---------------------------
       - name: Cleanup step
         if: always()
         run: echo "Cleaning up temporary cloud volumes..."
