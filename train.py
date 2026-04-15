@@ -16,7 +16,7 @@ X_train, X_test, y_train, y_test = train_test_split(
 )
 
 print("Training model...")
-model = RandomForestClassifier()
+model = RandomForestClassifier(max_depth=1, n_estimators=1)
 model.fit(X_train, y_train)
 
 print("Evaluating model...")
