@@ -20,50 +20,45 @@ jobs:
           echo "Running linter..."
           echo "No lint errors found!"
 
-  
-  # 2. TRAIN JOB (EXPENSIVE)
+  # 2. TRAIN JOB (EXPENSIVE - GATED)
   train:
     needs: linter
     runs-on: ubuntu-latest
 
-    #  GATEKEEPER LOGIC
-    if: |
+    # Gatekeeper Logic
+    if: >
       needs.linter.result == 'success' &&
       github.ref == 'refs/heads/main' &&
       contains(github.event.head_commit.message, '[run-train]')
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      # SETUP PYTHON ENVIRONMENT
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: "3.10"
 
-      # INSTALL DEPENDENCIES
       - name: Install dependencies
-        run: |
-          pip install scikit-learn
+        run: pip install scikit-learn
 
-      # RUN REAL TRAINING SCRIPT
       - name: Run training script
         run: python train.py
 
-      # 3. FAILURE HANDLING
+      # Failure handling (only runs if training fails)
       - name: Create error log
         if: failure()
-        run: echo "Training failed! Check your code." > error_logs.txt
+        run: echo "Training failed! Check logs." > error_logs.txt
 
       - name: Upload error logs
         if: failure()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: error-logs
           path: error_logs.txt
 
-      # 4. ALWAYS RUN CLEANUP
+      # Always runs (success or failure)
       - name: Cleanup step
         if: always()
         run: echo "Cleaning up temporary cloud volumes..."
