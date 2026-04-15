@@ -26,7 +26,7 @@ accuracy = accuracy_score(y_test, preds)
 print(f"Model Accuracy: {accuracy:.2f}")
 
 # Simulate failure if accuracy is too low (for testing pipeline)
-if accuracy < 0.5:
+if accuracy < 1:
     print("Model accuracy too low! Failing job...")
     sys.exit(1)
 
