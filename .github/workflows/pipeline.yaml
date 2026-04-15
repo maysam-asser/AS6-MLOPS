@@ -1,0 +1,68 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - "**"
+
+jobs:
+
+  # ---------------------------
+  # 1. LINTER JOB (LIGHTWEIGHT)
+  # ---------------------------
+  linter:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Run simple linter
+        run: |
+          echo "Running linter..."
+          # Example check (you can replace with flake8, eslint, etc.)
+          echo "No lint errors found!"
+
+  # ---------------------------
+  # 2. TRAIN JOB (EXPENSIVE)
+  # ---------------------------
+  train:
+    needs: linter
+    runs-on: ubuntu-latest
+
+    # 🔥 THIS IS THE GATEKEEPER LOGIC
+    if: |
+      needs.linter.result == 'success' &&
+      github.ref == 'refs/heads/main' &&
+      contains(github.event.head_commit.message, '[run-train]')
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Simulate training (GPU job)
+        run: |
+          echo "Training model..."
+          # Simulate failure for testing
+          exit 1
+
+      # ---------------------------
+      # 3. UPLOAD ERROR LOGS ON FAILURE
+      # ---------------------------
+      - name: Create error log
+        if: failure()
+        run: echo "Training failed! Check your code." > error_logs.txt
+
+      - name: Upload error logs
+        if: failure()
+        uses: actions/upload-artifact@v3
+        with:
+          name: error-logs
+          path: error_logs.txt
+
+      # ---------------------------
+      # 4. ALWAYS RUN CLEANUP
+      # ---------------------------
+      - name: Cleanup step
+        if: always()
+        run: echo "Cleaning up temporary cloud volumes..."
