@@ -31,3 +31,4 @@ if accuracy < 0.5:
     sys.exit(1)
 
 print("Training completed successfully!")
+# trigger success run
